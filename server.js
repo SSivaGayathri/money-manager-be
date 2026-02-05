@@ -5,18 +5,69 @@ require("dotenv").config();
 
 const app = express();
 
-console.log("Environment:", process.env.NODE_ENV);
-
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB Connected"))
-.catch(err => console.log(err));
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
 
+// Transaction Schema
+const transactionSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const Transaction = mongoose.model("Transaction", transactionSchema);
+
+// Routes
+
+// Test route
 app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
+// GET all transactions
+app.get("/api/transactions", async (req, res) => {
+  try {
+    const transactions = await Transaction.find().sort({ date: -1 });
+    res.json(transactions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST new transaction
+app.post("/api/transactions", async (req, res) => {
+  try {
+    const { title, amount } = req.body;
+
+    const newTransaction = new Transaction({
+      title,
+      amount
+    });
+
+    const savedTransaction = await newTransaction.save();
+    res.status(201).json(savedTransaction);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
