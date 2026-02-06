@@ -34,12 +34,13 @@ app.get("/api/transactions", async (req, res) => {
 // POST new transaction
 app.post("/api/transactions", async (req, res) => {
   try {
-    const { title, amount, type } = req.body;
+    const { title, amount, type, category } = req.body;
 
     const newTransaction = new Transaction({
       title,
       amount,
-      type
+      type,
+      category,
     });
 
     const savedTransaction = await newTransaction.save();
@@ -48,6 +49,7 @@ app.post("/api/transactions", async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
+
 
 // DELETE transaction
 app.delete("/api/transactions/:id", async (req, res) => {
